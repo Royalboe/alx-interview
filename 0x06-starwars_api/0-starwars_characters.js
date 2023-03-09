@@ -1,29 +1,36 @@
 #!/usr/bin/node
-/* Module to print all characters of a movie from a starwars movie */
-
 const request = require('request');
 
-function printCharacters (index, characterList) {
-  /* Print all the characters from the api */
-  if (index === characterList.length) {
-    return;
-  }
-  request((characterList[index]), (error, response, body) => {
-    if (error) {
-      console.log(error);
+const filmId = process.argv[2];
+
+const url = 'https://swapi-api.hbtn.io/api/films/' + filmId + '/';
+
+function printMovieCharacters (url) {
+  request(url, async function (error, response, body) {
+    if (error) return console.log('An error occurred');
+
+    const characters = JSON.parse(body).characters;
+    if (!characters) return;
+
+    const promises = [];
+
+    for (const ch of characters) {
+      let promise = null;
+
+      promise = new Promise(function (resolve, reject) {
+        request(ch, function (error, response, body) {
+          if (error) return console.log('Error fetching character');
+          resolve(JSON.parse(body).name);
+        });
+      });
+      promises.push(promise);
     }
-    const character = JSON.parse(body);
-    console.log(character.name);
-    printCharacters(index + 1, characterList);
+
+    const data = await Promise.all(promises);
+    for (const item of data) {
+      console.log(item);
+    }
   });
 }
 
-const movieID = process.argv[2];
-const url = 'https://swapi-api.hbtn.io/api/films/' + movieID;
-request(url, (error, response, body) => {
-  if (error) {
-    console.log(error);
-  }
-  body = JSON.parse(body);
-  printCharacters(0, body.characters);
-});
+printMovieCharacters(url);
