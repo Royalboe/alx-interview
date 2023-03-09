@@ -1,2 +1,3 @@
-# alx-interview
-practices
+# ALX-INTERVIEW
+## DESCRIPTION
+To practice for interviews
